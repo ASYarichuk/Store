@@ -1,278 +1,190 @@
-﻿Console.WriteLine("Неправильное имя товара");
+﻿using System;
+using System.Collections.Generic;
 
-class Good
+namespace OnlineStore
 {
-    public Good(string name)
+    class Program
     {
-        if (string.IsNullOrEmpty(name))
+        static void Main(string[] args)
         {
-            Console.WriteLine("Неправильное имя товара");
-            return;
-        }
+            Good iPhone12 = new Good("IPhone 12");
+            Good iPhone11 = new Good("IPhone 11");
 
-        _name = name;
-    }
+            Warehouse warehouse = new Warehouse();
 
-    public string Name { get; private set; }
-}
+            Shop shop = new Shop(warehouse);
 
-class Cell
-{
-    private int _count;
-    private Good _good;
+            warehouse.Delive(iPhone12, 10);
+            warehouse.Delive(iPhone11, 1);
 
-    public Cell(string nameGood, int count)
-    {
-        if (nameGood == null)
-            Console.WriteLine("Неправильное имя");
-        return;
+            warehouse.ShowGoods();
 
-        _good = new Good(nameGood);
+            Cart cart = shop.Cart();
+            cart.Add(iPhone12, 4);
+            cart.Add(iPhone11, 3);
 
-        _count = count;
+            cart.ShowGoods();
 
-        if (_count < 0)
-        {
-            _count = 0;
+            cart.Order();
+
+            Console.WriteLine(cart.Order().Paylink);
+
+            cart.Add(iPhone12, 9);
         }
     }
 
-    public void AddCount(int count)
+    class Good
     {
-        if (count < 0)
+        public Good(string name)
         {
-            Console.WriteLine("Отрицательное количество");
-        }
-
-        _count += count;
-    }
-
-    public void DeleteCount(int count)
-    {
-        _count -= count;
-
-        if (_count < 0)
-        {
-            Console.WriteLine("Количество товара ушло в минус");
-        }
-    }
-}
-
-class Warehouse
-{
-    private List<Cell> _goods = new();
-
-    public int CountCell()
-    {
-        return _goods.Count;
-    }
-
-    public void Delive(string name, int count)
-    {
-        if (name == null)
-        {
-            Console.WriteLine("Передано нулевое имя");
-            return;
-        }
-
-        if (count < 0)
-        {
-            Console.WriteLine("Передано отрицательное количество товара");
-            return;
-        }
-
-        string currentGood = null;
-        int indexCell = 0;
-
-        ResearchGood();
-
-        if (currentGood != null)
-        {
-            _goods[indexCell].AddCount(count);
-        }
-        else
-        {
-            _goods.Add(new Cell(name, count));
-        }
-    }
-
-    public void ReduceCountGood()
-    {
-        string currentGood = null;
-        int indexCell = 0;
-
-        ResearchGood();
-
-        _goods.DeleteCount();
-    }
-
-    private void ResearchGood(out string currentGood, out int indexCell)
-    {
-        currentGood = null;
-        indexCell = 0;
-
-        for (int i = 0; i < _goods.Count; i++)
-        {
-            if (_goods[i].name == name)
+            if (string.IsNullOrEmpty(name))
             {
-                currentGood = name;
-                indexCell = i;
-                break;
+                Console.WriteLine("Неправильное имя товара");
+                return;
             }
+
+            Name = name;
         }
+
+        public string Name { get; private set; }
     }
-}
 
-class Cart
-{
-    private List<Cell> _goods = new List<Cell>();
-
-    public void AddGood(Good good, int count)
+    class Warehouse
     {
-        if (good == null)
-        {
-            Console.WriteLine("Передан неверный товар");
-            return;
-        }
+        private Dictionary<Good, int> _goods = new Dictionary<Good, int>();
 
-        if (count < 0)
+        public void Delive(Good good, int count)
         {
-            Console.WriteLine("Передано отрицательное количество товара");
-            return;
-        }
-
-        string currentGood = null;
-        int indexCell = 0;
-
-        for (int i = 0; i < _goods.Count; i++)
-        {
-            if (_goods[i].name == name)
+            if (count < 0)
             {
-                currentGood = name;
-                indexCell = i;
-                break;
+                Console.WriteLine("Передано отрицательное количество товара");
+                return;
             }
-        }
 
-        if (currentGood != null)
-        {
-            _goods[indexCell].AddCount(count);
-        }
-        else
-        {
-            _goods.Add(new Cell(name, count));
-        }
-    }
-
-    public void ShowGoods()
-    {
-        for (int i = 0; i < _goods.Count; i++)
-        {
-            Console.WriteLine(_goods[i].name - _goods[i].count);
-        }
-    }
-}
-
-class Store
-{
-    private Warehouse _warehouse = new();
-
-    warehouse.Delive(iPhone12, 10);
-    warehouse.Delive(iPhone11, 1);
-
-    public void ShowCoodsWarehouse()
-    {
-        for (int i = 0; i < _warehouse.CountCell(); i++)
-        {
-            Console.WriteLine(_warehouse[i].name - _warehouse[i].count);
-        }
-    }
-
-    public bool CheckNameAndAmount(string name, int count)
-    {
-        if (name == null)
-        {
-            Console.WriteLine("Передан неверный товар");
-            return;
-        }
-
-        if (count < 0)
-        {
-            Console.WriteLine("Передано отрицательное количество товара");
-            return;
-        }
-
-        string currentGood = null;
-        int indexCell = 0;
-
-        for (int i = 0; i < _goods.Count; i++)
-        {
-            if (_goods[i].name == name)
+            if (_goods.ContainsKey(good) == false)
             {
-                currentGood = name;
-                indexCell = i;
-                break;
-            }
-        }
-
-        if (currentGood != null)
-        {
-            if (_goods[indexCell].count - count >= 0)
-            {
-                _goods[indexCell].DeleteCount(count);
-                _warehouse.ReduceCountGood();
-                return true;
+                _goods.Add(good, count);
             }
             else
             {
-                Console.WriteLine("На складе нет такого количества данного товара");
+                _goods[good] += count;
+            }
+        }
+
+        public void ShowGoods()
+        {
+            foreach (var item in _goods)
+            {
+                Console.WriteLine($"{item.Key.Name} - {item.Value} шт.");
+            }
+        }
+
+        public bool CheckGoods(Good good, int count)
+        {
+            if (_goods.ContainsKey(good))
+            {
+                if (_goods[good] < count)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else
+            {
                 return false;
             }
         }
-        else
+
+        public void TransferGood(Good good, int count)
         {
-            Console.WriteLine("Такого товара нет на складе");
-            return false;
+            _goods[good] -= count;
         }
     }
-}
 
-class Buyer
-{
-    private Cart _cart = new Cart();
-    private Store _store = new Store();
-
-    private void TryAddGood(string name, int count)
+    class Cart
     {
-        if (name == null)
+        private Dictionary<Good, int> _goods = new Dictionary<Good, int>();
+
+        private Shop _shop;
+
+        public Cart(Shop shop)
         {
-            Console.WriteLine("Передан неверный товар");
-            return;
+            _shop = shop;
         }
 
-        if (count < 0)
+        public void Add(Good good, int count)
         {
-            Console.WriteLine("Передано отрицательное количество товара");
-            return;
+            if (count < 0)
+            {
+                Console.WriteLine("Передано отрицательное количество товара");
+                return;
+            }
+
+            if (_shop.CheckAvailabilityOnWarehouse(good, count))
+            {
+                Console.WriteLine("Невозможно добавить данныую покупку в корзину");
+                return;
+            }
+
+            if (_goods.ContainsKey(good) == false)
+            {
+                _goods.Add(good, count);
+            }
+            else
+            {
+                _goods[good] += count;
+            }
         }
 
-        if (_store.CheckNameAndAmount(name, count))
+        public void ShowGoods()
         {
-            _cart.AddGood(name, count);
+            foreach (var item in _goods)
+            {
+                Console.WriteLine($"{item.Key.Name} - {item.Value} шт.");
+            }
         }
-        else
+
+        public Order Order()
         {
-            Console.WriteLine("Купить не получилось");
+            _shop.Sell(_goods);
+            return new Order();
         }
     }
 
-    TryAddGood(iPhone12, 4);
-    TryAddGood(iPhone11, 3);
+    class Order
+    {
+        public string Paylink { get; private set; } = "Paylink";
+    }
 
-    _cart.ShowGoods();
+    class Shop
+    {
+        public Shop(Warehouse warehouse)
+        {
+            _warehouse = warehouse;
+        }
 
-    Console.WriteLine(cart.Order().Paylink);
+        private Warehouse _warehouse;
 
-    TryAddGood(iPhone12, 9);
+        public Cart Cart()
+        {
+            return new Cart(this);
+        }
+
+        public bool CheckAvailabilityOnWarehouse(Good good, int count)
+        {
+            if (_warehouse.CheckGoods(good, count))
+                return true;
+            else
+                return false;
+        }
+
+        public void Sell(Dictionary<Good, int> goods)
+        {
+            foreach (var item in goods)
+            {
+                _warehouse.TransferGood(item.Key, item.Value);
+            }
+        }
+    }
 }
-
