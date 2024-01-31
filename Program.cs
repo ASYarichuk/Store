@@ -73,11 +73,17 @@ namespace OnlineStore
 
         public void ShowGoods()
         {
+            var stringBuilder = new StringBuilder();
+
             foreach (var item in _goods)
             {
-                Console.WriteLine($"{item.Key.Name} - {item.Value} шт.");
+                stringBuilder.AppendFormat("{0} - {1}", item.Key.Name, item.Value);
+                stringBuilder.Append("\n");
             }
+
+            Console.WriteLine(stringBuilder);
         }
+    }
 
         public bool CheckGoods(Good good, int count)
         {
@@ -123,8 +129,7 @@ namespace OnlineStore
 
             if (_shop.CheckAvailabilityOnWarehouse(good, count))
             {
-                Console.WriteLine("Невозможно добавить данныую покупку в корзину");
-                return;
+                throw new ArgumentException("Невозможно добавить данную покупку в корзину");
             }
 
             if (_goods.ContainsKey(good) == false)
